@@ -33,11 +33,11 @@ mysql_variables=
 mysql_servers =
 (
     # DB1 Inicialmente Master (HG 10)
-    { address="db1" , port=3306 , hostgroup=10, max_connections=200 },
+    { address="app2_db1" , port=3306 , hostgroup=10, max_connections=200 },
     
     # DB2 y DB3 Inicialmente Slaves (HG 20)
-    { address="db2" , port=3306 , hostgroup=20, max_connections=200 },
-    { address="db3" , port=3306 , hostgroup=20, max_connections=200 }
+    { address="app2_db2" , port=3306 , hostgroup=20, max_connections=200 },
+    { address="app2_db3" , port=3306 , hostgroup=20, max_connections=200 }
 )
 
 mysql_users =
