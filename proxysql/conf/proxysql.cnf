@@ -1,0 +1,61 @@
+datadir="/var/lib/proxysql"
+
+admin_variables=
+{
+    admin_credentials="admin:admin;radmin:radmin"
+    mysql_ifaces="0.0.0.0:6032"
+}
+
+mysql_variables=
+{
+    threads=4
+    max_connections=2048
+    default_query_delay=0
+    default_query_timeout=36000000
+    have_compress=true
+    poll_timeout=2000
+    interfaces="0.0.0.0:6033"
+    default_schema="information_schema"
+    stacksize=1048576
+    server_version="5.5.30"
+    connect_timeout_server=1000
+    monitor_history=60000
+    monitor_connect_interval=2000
+    monitor_ping_interval=2000
+    monitor_read_only_interval=1000
+    monitor_replication_lag_interval=2000
+    
+    # Usuario Monitor creado en init_cluster.sql
+    monitor_username="monitor_user"
+    monitor_password="monitor_password"
+}
+
+mysql_servers =
+(
+    # DB1 Inicialmente Master (HG 10)
+    { address="db1" , port=3306 , hostgroup=10, max_connections=200 },
+    
+    # DB2 y DB3 Inicialmente Slaves (HG 20)
+    { address="db2" , port=3306 , hostgroup=20, max_connections=200 },
+    { address="db3" , port=3306 , hostgroup=20, max_connections=200 }
+)
+
+mysql_users =
+(
+    # Usuario de la aplicación (Coincidir con .env APP2_DB_USER)
+    { username = "user" , password = "password" , default_hostgroup = 10 },
+    # Usuario root para mantenimiento remoto si se requiere
+    { username = "root" , password = "root_password" , default_hostgroup = 10 }
+)
+
+mysql_query_rules =
+(
+    # Regla 1: Todo lo que sea SELECT... FOR UPDATE va al Master (HG 10)
+    { rule_id=100, active=1, match_pattern="^SELECT.*FOR UPDATE$", destination_hostgroup=10, apply=1 },
+    
+    # Regla 2: SELECTs normales van a Slaves (HG 20) - Read/Write Split
+    { rule_id=200, active=1, match_pattern="^SELECT.*", destination_hostgroup=20, apply=1 },
+    
+    # Regla 3: Todo lo demás (INSERT, UPDATE, DELETE) va al Master (HG 10) por defecto
+    { rule_id=300, active=1, match_pattern=".*", destination_hostgroup=10, apply=1 }
+)
